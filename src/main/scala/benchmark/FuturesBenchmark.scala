@@ -2,8 +2,7 @@ package benchmark
 
 import com.google.caliper.runner.CaliperMain
 import com.google.caliper.{Param, Benchmark}
-import scala.concurrent.{Future, Promise}
-import scala.util.Success
+import scala.concurrent.Future
 import scala.annotation.meta.beanSetter
 
 /**
@@ -11,24 +10,34 @@ import scala.annotation.meta.beanSetter
  */
 class FuturesBenchmark {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-  @Param(Array[String]("10", "100", "1000"))
+  @Param(Array[String]("1", "10", "100"))
   @beanSetter
-  var size = 0
+  var size: Int = 0
 
   @Benchmark
   def accesViaFuture(reps: Int): Int = Util.run(reps) {
-    val future = Future.sequence(
-      for (i <- 0 until size) yield Future.successful(i)
-    )
-    val extractedI = future.value match {
-      case Some(Success(x)) =>
-        x
-      case _ =>
-        0
-    }
+    val futures =
+      for (i <- 0 until size) yield Future.successful(someMethod(i))
+    val ints = futures.map(f => f.value.get.get)
+    ints.size
   }
+
+  @Benchmark
+  def accessViaEither(reps: Int): Int = Util.run(reps) {
+    val eithes =
+      for (i <- 0 until size) yield Left(someMethod(i))
+    val ints = eithes.map(e => e.a)
+    ints.size
+  }
+
+  @Benchmark
+  def accessDirectly(reps: Int): Int = Util.run(reps) {
+    val ints =
+      for (i <- 0 until size) yield someMethod(i)
+    ints.size
+  }
+
+  def someMethod(i: Int) = i * 2
 }
 
 object FuturesBenchmark extends App {
