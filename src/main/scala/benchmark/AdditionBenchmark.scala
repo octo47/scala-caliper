@@ -12,7 +12,7 @@ import com.google.caliper.api.Macrobenchmark
 
 class AdditionBenchmark {
 
-  val size = 10 * 1000 * 1000
+  val size = 1000 * 1000
   val longs = Util.initLongs(size)
   val x = Int.MaxValue.toLong
 

@@ -1,28 +1,33 @@
 package benchmark
 
 import com.google.caliper.runner.CaliperMain
-import com.google.caliper.Benchmark
-import scala.concurrent.Promise
+import com.google.caliper.{Param, Benchmark}
+import scala.concurrent.{Future, Promise}
 import scala.util.Success
+import scala.annotation.meta.beanSetter
 
 /**
  * @author Andrey Stepachev
  */
 class FuturesBenchmark {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
+  @Param(Array[String]("10", "100", "1000"))
+  @beanSetter
+  var size = 0
+
   @Benchmark
-  def accesViaFuture(reps: Int): Int = {
-    for (i <- 1 to reps) {
-      val promise = Promise[Int]()
-      promise.success(i)
-      val extractedI = promise.future.value match {
-        case Some(Success(x)) =>
-          x
-        case _ =>
-          0
-      }
+  def accesViaFuture(reps: Int): Int = Util.run(reps) {
+    val future = Future.sequence(
+      for (i <- 0 until size) yield Future.successful(i)
+    )
+    val extractedI = future.value match {
+      case Some(Success(x)) =>
+        x
+      case _ =>
+        0
     }
-    0
   }
 }
 

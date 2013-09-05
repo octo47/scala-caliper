@@ -4,7 +4,7 @@ import scala.util.Random
 
 object Util {
 
-  def run(reps:Int)(f: =>Unit) = for(i <- 0 until reps)(f)
+  def run(reps:Int)(f: =>Any) = { for(i <- 0 until reps){f}; reps }
 
   // sugar for building arrays using a per-cell init function
   def init[A:Manifest](size:Int)(init: =>A) = {
